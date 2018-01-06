@@ -18,10 +18,10 @@ SAMPLEDIR <- "../samples/ubiome/ubiome-processed-outputs"
 Read the mapping data into a more familiar "Actino-style" mapfile
 
 ```{r}
-results <- readxl::read_excel(paste0(SAMPLEDIR,"/results.xlsx"))
+results <- readxl::read_excel(file.path(SAMPLEDIR,"/results.xlsx"))
 ssrs <- results$SeqID
 username <- results$Sample_ID
-mapping <- data.frame(SSR=ssrs,id=username)
+mapping_df <- data.frame(SSR=ssrs,id=username)
 ```
 
 Save it as an Excel file to be later readable by the actino functions.
@@ -29,25 +29,26 @@ You only have to run this chunk once. It's commented now because I already creat
 
 ```{r}
 #library(xlsx)
-#xlsx::write.xlsx(mapping, file = paste0(SAMPLEDIR,"/json/fratmap.xlsx"), row.names = FALSE)
+#xlsx::write.xlsx(mapping, file = paste0(SAMPLEDIR,"/json/frat_map_file.xlsx"), row.names = FALSE)
 ```
 
 Now create the Phyloseq object
 ```{r, message= FALSE}
-sampleFiles<-actino::just_json_files_in(paste0(SAMPLEDIR,"/json"))
-fratMap <- paste0(SAMPLEDIR,"/json/fratmap.xlsx")
-fratjuice.phylum <- actino::phyloseq_from_JSON_at_rank(sampleFiles,fratMap,rank = "phylum", count.normalized = TRUE)
-fratjuice.genus <- actino::phyloseq_from_JSON_at_rank(sampleFiles,fratMap,rank = "genus", count.normalized = TRUE)
-sample_data(fratjuice.genus)$id <- mapping$id
-fratjuice.species <- actino::phyloseq_from_JSON_at_rank(sampleFiles,fratMap,rank = "species", count.normalized = TRUE)
-sample_data(fratjuice.genus)$id <- mapping$id
+sample_files<-actino::just_json_files_in(file.path(SAMPLEDIR,"/json"))
+
+frat_map_file <- paste0(SAMPLEDIR,"/json/frat_map_file.xlsx")
+fratjuice.phylum <- actino::phyloseq_from_JSON_at_rank(sampleFiles,frat_map_file,rank = "phylum", count.normalized = TRUE)
+fratjuice.genus <- actino::phyloseq_from_JSON_at_rank(sampleFiles,frat_map_file,rank = "genus", count.normalized = TRUE)
+sample_data(fratjuice.genus)$id <- mapping_df$id
+fratjuice.species <- actino::phyloseq_from_JSON_at_rank(sampleFiles,frat_map_file,rank = "species", count.normalized = TRUE)
+sample_data(fratjuice.genus)$id <- mapping_df$id
 
 ```
 
 plot the Phylum level
 
 ```{r}
-sample_data(fratjuice.phylum)$id <- mapping$id
+sample_data(fratjuice.phylum)$id <- mapping_df$id
 plot_bar(fratjuice.phylum, fill = "Phylum", x = "id") + 
   scale_y_continuous(labels=function(x)x/10000) + ylab("Abundance (%)")
 ```
