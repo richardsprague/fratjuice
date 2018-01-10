@@ -1,7 +1,7 @@
 ---
 title: "Phyloseqify the Fratjuice Samples"
 author: "Richard Sprague"
-date: "1/6/2018"
+date: "2018-01-10"
 output: github_document
 ---
 
@@ -49,6 +49,9 @@ sample_files<-actino::just_json_files_in(file.path(SAMPLEPATH,"/json"))
 
 frat_map_file <- paste0(SAMPLEPATH,"/json/frat_map_file.xlsx")
 fratjuice.phylum <- actino::phyloseq_from_JSON_at_rank(sample_files, frat_map_file, rank = "phylum", count.normalized = TRUE)
+fratjuice.family <- actino::phyloseq_from_JSON_at_rank(sample_files, frat_map_file, rank = "family", count.normalized = TRUE)
+phyloseq::sample_data(fratjuice.family)$id <- mapping_df$id
+
 fratjuice.genus <- actino::phyloseq_from_JSON_at_rank(sample_files, frat_map_file, rank = "genus", count.normalized = TRUE)
 phyloseq::sample_data(fratjuice.genus)$id <- mapping_df$id
 fratjuice.species <- actino::phyloseq_from_JSON_at_rank(sample_files, frat_map_file, rank = "species", count.normalized = TRUE)
@@ -72,6 +75,13 @@ There are `r nrow(phyloseq::otu_table(fratjuice.genus))` unique genus-level taxa
 frat.topgenus <- phyloseq::prune_taxa(phyloseq::taxa_sums(fratjuice.genus)>50000, fratjuice.genus)
 phyloseq::plot_bar(frat.topgenus, fill = "Genus", x = "id") + 
   ggplot2::scale_y_continuous(labels=function(x)x/10000) + ggplot2::ylab("Abundance (%)")
+```
+
+Now let's draw a simple PCA/NMDS chart to see if we can spot some clusters:
+
+```{r, message = FALSE}
+ord <- phyloseq::ordinate(fratjuice.family, "NMDS")
+phyloseq::plot_ordination(fratjuice.family, ord, label = "id", color = "Site")
 ```
 
 
